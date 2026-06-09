@@ -3,9 +3,13 @@
 ### Participants
 
 Victor Gonçalves Soares
+
 Felipe Akio Matsuoka
+
 Raphael Federicci Haddad
+
 Crisitna Mendes de Oliveira
+
 Alberto Chebabo
 
 
