@@ -23,6 +23,10 @@ VALIDATION_SPLITS = {
     "validation_4": ("train_4", "target_4"),
 }
 
+VALIDATION_PERIODS = {
+    "target_4": 53,
+}
+
 
 def build_case_table(config: dict) -> pd.DataFrame:
     feature_config = copy.deepcopy(config)
@@ -42,7 +46,8 @@ def validation_dates(case_table: pd.DataFrame, target_mask_col: str, date_col: s
     if observed_target.empty:
         raise ValueError(f"No rows found for {target_mask_col}.")
     start = observed_target.min()
-    return pd.date_range(start=start, periods=52, freq="W-SUN")
+    periods = VALIDATION_PERIODS.get(target_mask_col, 52)
+    return pd.date_range(start=start, periods=periods, freq="W-SUN")
 
 
 def make_forecast_skeleton(

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -42,6 +41,13 @@ def prediction_payload(frame: pd.DataFrame) -> pd.DataFrame:
 
 def upload_predictions(args: argparse.Namespace) -> None:
     submission = pd.read_csv(args.submission_csv, parse_dates=["date"])
+    if args.validation:
+        submission = submission.loc[submission["validation"].isin(args.validation)].copy()
+    if args.uf_code:
+        submission = submission.loc[submission["uf_code"].isin(args.uf_code)].copy()
+    if submission.empty:
+        raise ValueError("No submission rows remain after applying filters.")
+
     validate_submission_frame(submission, group_cols=["uf_code"])
 
     commit = args.commit or git_commit_hash()
@@ -97,6 +103,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--case-definition", default="probable", choices=["probable", "reported"])
     parser.add_argument("--description-prefix", default="IMDC 2026 July 1 validation")
     parser.add_argument("--api-key-env", nargs="+", default=["MOSQLIMATE_API_KEY", "API_KEY"])
+    parser.add_argument("--validation", nargs="+", help="Upload only selected validations, e.g. validation_4.")
+    parser.add_argument("--uf-code", nargs="+", type=int, help="Upload only selected state uf_code values.")
     parser.add_argument("--published", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--execute", action="store_true", help="Actually upload predictions. Omit for dry-run.")
     return parser.parse_args()
