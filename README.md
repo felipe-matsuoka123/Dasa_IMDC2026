@@ -37,6 +37,19 @@ The CSVs will be written to:
 outputs/submissions/july1/
 ```
 
+Check the Mosqlimate upload payloads before submitting:
+
+```bash
+conda run -n dengue-forecast python scripts/upload_july1_predictions.py
+```
+
+To submit, set your API key and add `--execute`:
+
+```bash
+export MOSQLIMATE_API_KEY=your_key_here
+conda run -n dengue-forecast python scripts/upload_july1_predictions.py --execute
+```
+
 ## What Is Here
 
 - `configs/`: model and feature settings

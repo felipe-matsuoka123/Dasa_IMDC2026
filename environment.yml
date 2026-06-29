@@ -25,4 +25,6 @@ dependencies:
   - pyproj
   - wandb
   - pip:
+      - mosqlient
+      - python-dotenv
       - -e .
