@@ -1,0 +1,79 @@
+experiment:
+  name: direct_horizon_state_dengue_lgbm
+
+data:
+  cases_path: data/dengue.csv.gz
+  disease: dengue
+  date_col: date
+  target_col: casos
+  group_cols:
+    - uf_code
+  exclude_uf:
+    - ES
+  target_city_only: false
+
+direct_horizon:
+  origin_week: 25
+  target_start_week: 41
+  target_end_week: 40
+  target_length: 52
+  min_origin_year: 2010
+  validation_splits:
+    validation_1:
+      train_col: train_1
+      target_col: target_1
+    validation_2:
+      train_col: train_2
+      target_col: target_2
+    validation_3:
+      train_col: train_3
+      target_col: target_3
+    validation_4:
+      train_col: train_4
+      target_col: target_4
+
+features:
+  feature_sets:
+    - calendar
+    - case_lags
+    - rolling_statistics
+    - derivative_differences
+    - derivative_accelerations
+    - growth_ratios
+    - rolling_slopes
+    - direct_horizon_metadata
+  lags: [1, 2, 3, 4, 8, 12, 16, 26, 52]
+  rolling_windows: [4, 8, 12, 26]
+  differences: [1, 2, 4, 8]
+  accelerations: [1, 2, 4]
+  growth_windows: [4, 8, 12, 26]
+  slope_windows: [4, 8, 12]
+  missing_value: 0
+  exogenous:
+    enabled: false
+
+model:
+  name: lightgbm
+  params:
+    objective: poisson
+    n_estimators: 500
+    learning_rate: 0.04
+    num_leaves: 31
+    min_child_samples: 25
+    subsample: 0.9
+    subsample_freq: 1
+    colsample_bytree: 0.9
+    reg_alpha: 0.05
+    reg_lambda: 0.2
+    random_state: 42
+    n_jobs: -1
+    verbosity: -1
+
+wandb:
+  entity: felipe-matsu-2003
+  project: dengue-comp
+  mode: offline
+
+output:
+  run_dir: outputs/runs
+  direct_horizon_dir: outputs/direct_horizon

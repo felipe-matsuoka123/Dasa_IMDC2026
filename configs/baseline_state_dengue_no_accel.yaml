@@ -1,0 +1,51 @@
+experiment:
+  name: baseline_state_dengue_no_accel
+
+data:
+  cases_path: data/dengue.csv.gz
+  disease: dengue
+  date_col: date
+  target_col: casos
+  group_cols:
+    - uf_code
+  exclude_uf:
+    - ES
+  target_city_only: false
+  train_mask_cols:
+    - train_3
+  valid_mask_cols:
+    - target_3
+
+features:
+  feature_sets:
+    - calendar
+    - case_lags
+    - rolling_statistics
+    - derivative_differences
+    - derivative_accelerations
+    - growth_ratios
+    - rolling_slopes
+  lags: [1, 2, 4, 8, 12, 26, 52]
+  rolling_windows: [4, 8, 12]
+  differences: [1, 2, 4]
+  accelerations: []
+  growth_windows: [4, 8, 12]
+  slope_windows: [4, 8]
+  missing_value: 0
+
+model:
+  name: hist_gradient_boosting
+  params:
+    learning_rate: 0.05
+    max_iter: 300
+    max_leaf_nodes: 31
+    l2_regularization: 0.0
+    random_state: 42
+
+wandb:
+  entity: felipe-matsu-2003
+  project: dengue-comp
+  mode: online
+
+output:
+  run_dir: outputs/runs

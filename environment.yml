@@ -1,0 +1,28 @@
+name: dengue-forecast
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+  - ipykernel
+  - numpy
+  - pandas
+  - pyarrow
+  - scikit-learn
+  - scipy
+  - statsmodels
+  - lightgbm
+  - xgboost
+  - pyyaml
+  - joblib
+  - tqdm
+  - matplotlib
+  - seaborn
+  - geopandas
+  - fiona
+  - shapely
+  - pyproj
+  - wandb
+  - pip:
+      - -e .
