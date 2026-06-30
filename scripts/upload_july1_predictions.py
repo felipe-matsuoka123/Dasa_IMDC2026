@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from typing import Any
 
@@ -39,6 +40,15 @@ def prediction_payload(frame: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def is_duplicate_error(exc: Exception) -> bool:
+    text = str(exc)
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return "Duplication found for this Prediction within the Model" in text
+    return payload.get("message") == "Duplication found for this Prediction within the Model"
+
+
 def upload_predictions(args: argparse.Namespace) -> None:
     submission = pd.read_csv(args.submission_csv, parse_dates=["date"])
     if args.validation:
@@ -74,18 +84,24 @@ def upload_predictions(args: argparse.Namespace) -> None:
     for (validation, uf_code), part in groups:
         prediction = prediction_payload(part)
         description = f"{args.description_prefix}: {validation}, uf_code={int(uf_code)}"
-        result: Any = upload_prediction(
-            api_key=api_key,
-            repository=args.repository,
-            description=description,
-            commit=commit,
-            disease=args.disease,
-            case_definition=args.case_definition,
-            adm_level=1,
-            adm_1=int(uf_code),
-            published=args.published,
-            prediction=prediction,
-        )
+        try:
+            result: Any = upload_prediction(
+                api_key=api_key,
+                repository=args.repository,
+                description=description,
+                commit=commit,
+                disease=args.disease,
+                case_definition=args.case_definition,
+                adm_level=1,
+                adm_1=int(uf_code),
+                published=args.published,
+                prediction=prediction,
+            )
+        except ValueError as exc:
+            if args.skip_duplicates and is_duplicate_error(exc):
+                print(f"skipped duplicate {validation} uf_code={int(uf_code)}")
+                continue
+            raise
         print(f"uploaded {validation} uf_code={int(uf_code)}: {result}")
 
 
@@ -105,6 +121,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key-env", nargs="+", default=["MOSQLIMATE_API_KEY", "API_KEY"])
     parser.add_argument("--validation", nargs="+", help="Upload only selected validations, e.g. validation_4.")
     parser.add_argument("--uf-code", nargs="+", type=int, help="Upload only selected state uf_code values.")
+    parser.add_argument("--skip-duplicates", action="store_true", help="Continue when the platform reports an already uploaded prediction.")
     parser.add_argument("--published", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--execute", action="store_true", help="Actually upload predictions. Omit for dry-run.")
     return parser.parse_args()
